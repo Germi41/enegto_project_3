@@ -1,4 +1,4 @@
-#!/Users/germicz/WebstormProjects/python/enegto_project_3/env3/bin/python3
+#!/Users/germicz/WebstormProjects/python/enegto_project_3/venv3/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys
