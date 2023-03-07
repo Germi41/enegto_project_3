@@ -1,5 +1,5 @@
 """
-election_scraper.py: Třetí projekt do Engeto Online Python Akademie
+election_scraper.py: Třetí projekt do Engeto Python Akademie
 author: David Germ
 email: david.germ@kiwi.com
 discord: GermiCZ#2828
