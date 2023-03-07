@@ -11,11 +11,22 @@ from bs4 import BeautifulSoup
 
 
 def main():
+    url = sys.argv[1]
+    file_name = sys.argv[2]
     base_url = "https://www.volby.cz/pls/ps2017nss/"
-    url = "https://www.volby.cz/pls/ps2017nss/ps32?xjazyk=CZ&xkraj=11&xnumnuts=6205"
-    first_soup = get_response(url)
-    results = get_municipality_links(first_soup, base_url)
-    save_to_csv(results, "vysledky.csv")
+    if base_url not in url:
+        print("You have entered wrong URL. Please check README and try it again.")
+        exit()
+    elif ".csv" not in file_name:
+        print("You have entered wrong file name. Please check README and try it again.")
+        exit()
+    else:
+        print(f"Downloading data from selected URL: {url}")
+        first_soup = get_response(url)
+        results = get_municipality_links(first_soup, base_url)
+        print(f"Saving data to file: {file_name}")
+        save_to_csv(results, file_name)
+        print("All done, closing...")
 
 
 def get_response(url):
@@ -36,7 +47,7 @@ def get_municipality_links(first_soup, base_url):
         results.append(line)
         i += 1
 
-    print(*results, sep="\n")
+    # print(*results, sep="\n") Just for check
     return results
 
 
@@ -74,18 +85,18 @@ def clean_numbers(number):
 def save_to_csv(results: list, file: str):
     """Uloz tabulku men s datem do CSV souboru"""
     header = ["Code", "Location", "Registered", "Envelopes",
-               "Valid", "Občanská demokratická strana",
-               "Řád národa - Vlastenecká unie", "CESTA ODPOVĚDNÉ SPOLEČNOSTI",
-               "Česká str.sociálně demokrat.", "Radostné Česko",
-               "STAROSTOVÉ A NEZÁVISLÍ", "Komunistická str.Čech a Moravy",
-               "Strana zelených", "ROZUMNÍ-stop migraci,diktát.EU",
-               "Strana svobodných občanů", "Blok proti islam.-Obran.domova",
-               "Občanská demokratická aliance", "Česká pirátská strana",
-               "Referendum o Evropské unii", "TOP 09",
-               "ANO 2011", "SPR-Republ.str.Čsl. M.Sládka",
-               "Křesť.demokr.unie-Čs.str.lid.", "Česká strana národně sociální",
-               "REALISTÉ", "SPORTOVCI", "Dělnic.str.sociální spravedl.",
-               "Svob.a př.dem.-T.Okamura (SPD)", "Strana Práv Občanů"]
+              "Valid", "Občanská demokratická strana",
+              "Řád národa - Vlastenecká unie", "CESTA ODPOVĚDNÉ SPOLEČNOSTI",
+              "Česká str.sociálně demokrat.", "Radostné Česko",
+              "STAROSTOVÉ A NEZÁVISLÍ", "Komunistická str.Čech a Moravy",
+              "Strana zelených", "ROZUMNÍ-stop migraci,diktát.EU",
+              "Strana svobodných občanů", "Blok proti islam.-Obran.domova",
+              "Občanská demokratická aliance", "Česká pirátská strana",
+              "Referendum o Evropské unii", "TOP 09",
+              "ANO 2011", "SPR-Republ.str.Čsl. M.Sládka",
+              "Křesť.demokr.unie-Čs.str.lid.", "Česká strana národně sociální",
+              "REALISTÉ", "SPORTOVCI", "Dělnic.str.sociální spravedl.",
+              "Svob.a př.dem.-T.Okamura (SPD)", "Strana Práv Občanů"]
     with open(file, "w", encoding="utf-8", newline="") as csv_s:
         write = csv.writer(csv_s, dialect="excel")
         write.writerow(header)
@@ -93,5 +104,8 @@ def save_to_csv(results: list, file: str):
 
 
 if __name__ == "__main__":
-    print("Jedeme")
-    main()
+    try:
+        main()
+    except IndexError:
+        print("Arguments were not entered correctly. Please check README and try it again.")
+        sys.exit(1)
