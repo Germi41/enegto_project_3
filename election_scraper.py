@@ -32,8 +32,7 @@ def get_municipality_links(soup, base_url):
         for each_name in names[i]:
             line2.append(each_name.text)
         line = each_td.a['href']
-        url = base_url + line
-        line2.extend(get_data(url))
+        line2.extend(collect_numbers(get_response(base_url + line)))
         results.append(line2)
         i += 1
 
@@ -41,39 +40,35 @@ def get_municipality_links(soup, base_url):
     return results
 
 
-def get_data(links_table):
-    response = requests.get(links_table)
-    soup = BeautifulSoup(response.text, "html.parser")
-    data = collect_votes(soup)
+def collect_numbers(soup):
+    data = []
+    registered = soup.find('td', {'headers': 'sa2'}).text
+    data.append(clean_numbers(registered))
+    envelopes = soup.find('td', {'headers': 'sa5'}).text
+    data.append(clean_numbers(envelopes))
+    valid = soup.find('td', {'headers': 'sa6'}).text
+    data.append(clean_numbers(valid))
+    data.extend(collect_votes(soup))
 
     return data
 
 
 def collect_votes(soup):
-    data = []
-    registered = soup.find('td', {'headers': 'sa2'}).text
-    envelopes = soup.find('td', {'headers': 'sa5'}).text
-    valid = soup.find('td', {'headers': 'sa6'}).text
+    data_votes = []
+    votes = soup.find_all('td', {'headers': 't1sa2 t1sb3'})
+    votes2 = soup.find_all('td', {'headers': 't2sa2 t2sb3'})
+    for each in votes:
+        data_votes.append(each.text)
+    for each in votes2:
+        data_votes.append(each.text)
+    return data_votes
 
-    if "\xa0" in registered:
-        clean_reg = ''.join(registered.split())
-        data.append(clean_reg)
+
+def clean_numbers(number):
+    if "\xa0" in number:
+        return ''.join(number.split())
     else:
-        data.append(registered)
-
-    if "\xa0" in envelopes:
-        clean_env = ''.join(envelopes.split())
-        data.append(clean_env)
-    else:
-        data.append(envelopes)
-
-    if "\xa0" in valid:
-        clean_val = ''.join(valid.split())
-        data.append(clean_val)
-    else:
-        data.append(valid)
-
-    return data
+        return number
 
 
 def save_to_csv(results: list, file: str):
