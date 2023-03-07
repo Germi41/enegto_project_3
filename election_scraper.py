@@ -13,8 +13,8 @@ from bs4 import BeautifulSoup
 def main():
     base_url = "https://www.volby.cz/pls/ps2017nss/"
     url = "https://www.volby.cz/pls/ps2017nss/ps32?xjazyk=CZ&xkraj=11&xnumnuts=6205"
-    soup = get_response(url)
-    results = get_municipality_links(soup, base_url)
+    first_soup = get_response(url)
+    results = get_municipality_links(first_soup, base_url)
     save_to_csv(results, "vysledky.csv")
 
 
@@ -23,44 +23,44 @@ def get_response(url):
     return BeautifulSoup(response.text, "html.parser")
 
 
-def get_municipality_links(soup, base_url):
+def get_municipality_links(first_soup, base_url):
     results = []
     i = 0
-    names = soup.find_all('td', {'class': 'overflow_name'})
-    for each_td in soup.find_all('td', {'class': 'cislo'}):
-        line2 = [each_td.text]
+    names = first_soup.find_all('td', {'class': 'overflow_name'})
+    for each_td in first_soup.find_all('td', {'class': 'cislo'}):
+        line = [each_td.text]
         for each_name in names[i]:
-            line2.append(each_name.text)
-        line = each_td.a['href']
-        line2.extend(collect_numbers(get_response(base_url + line)))
-        results.append(line2)
+            line.append(each_name.text)
+        link = each_td.a['href']
+        line.extend(collect_numbers(get_response(base_url + link)))
+        results.append(line)
         i += 1
 
     print(*results, sep="\n")
     return results
 
 
-def collect_numbers(soup):
+def collect_numbers(second_soup):
     data = []
-    registered = soup.find('td', {'headers': 'sa2'}).text
+    registered = second_soup.find('td', {'headers': 'sa2'}).text
     data.append(clean_numbers(registered))
-    envelopes = soup.find('td', {'headers': 'sa5'}).text
+    envelopes = second_soup.find('td', {'headers': 'sa5'}).text
     data.append(clean_numbers(envelopes))
-    valid = soup.find('td', {'headers': 'sa6'}).text
+    valid = second_soup.find('td', {'headers': 'sa6'}).text
     data.append(clean_numbers(valid))
-    data.extend(collect_votes(soup))
+    data.extend(collect_votes(second_soup))
 
     return data
 
 
-def collect_votes(soup):
+def collect_votes(second_soup):
     data_votes = []
-    votes = soup.find_all('td', {'headers': 't1sa2 t1sb3'})
-    votes2 = soup.find_all('td', {'headers': 't2sa2 t2sb3'})
+    votes = second_soup.find_all('td', {'headers': 't1sa2 t1sb3'})
+    votes2 = second_soup.find_all('td', {'headers': 't2sa2 t2sb3'})
     for each in votes:
-        data_votes.append(each.text)
+        data_votes.append(clean_numbers(each.text))
     for each in votes2:
-        data_votes.append(each.text)
+        data_votes.append(clean_numbers(each.text))
     return data_votes
 
 
