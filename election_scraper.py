@@ -11,22 +11,31 @@ from bs4 import BeautifulSoup
 
 
 def main():
+    base_url = "https://www.volby.cz/pls/ps2017nss/"
+    check_arguments(base_url)
     url = sys.argv[1]
     file_name = sys.argv[2]
-    base_url = "https://www.volby.cz/pls/ps2017nss/"
-    if base_url not in url:
+    print(url, file_name)
+    # first_soup = get_response(url)
+    # results = get_municipality_links(first_soup, base_url)
+    # print(f"Saving data to file: {file_name}")
+    # save_to_csv(results, file_name)
+    # print("All done, closing...")
+
+
+def check_arguments(base_url):
+    if len(sys.argv) != 3:
+        print("Arguments were not entered correctly. Please check README and try it again.")
+        exit()
+    elif base_url not in sys.argv[1]:
         print("You have entered wrong URL. Please check README and try it again.")
         exit()
-    elif ".csv" not in file_name:
+    elif ".csv" not in sys.argv[2]:
         print("You have entered wrong file name. Please check README and try it again.")
         exit()
     else:
-        print(f"Downloading data from selected URL: {url}")
-        first_soup = get_response(url)
-        results = get_municipality_links(first_soup, base_url)
-        print(f"Saving data to file: {file_name}")
-        save_to_csv(results, file_name)
-        print("All done, closing...")
+        print(f"Downloading data from selected URL: {sys.argv[1]}")
+    return
 
 
 def get_response(url):
@@ -104,8 +113,4 @@ def save_to_csv(results: list, file: str):
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except IndexError:
-        print("Arguments were not entered correctly. Please check README and try it again.")
-        sys.exit(1)
+    main()
