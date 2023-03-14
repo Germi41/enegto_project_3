@@ -53,7 +53,7 @@ def get_municipality_links(first_soup, base_url):
         for each_name in names[each_region]:
             line.append(each_name.text)
         link = each_td.a['href']
-        if each_region == 0:
+        if each_region == 0:  # Pokud beru hlasy z prvniho regionu, vytvor header
             header = create_header(get_response(base_url + link))
             line.extend(collect_numbers(get_response(base_url + link)))
         else:
@@ -66,12 +66,14 @@ def get_municipality_links(first_soup, base_url):
 
 def collect_numbers(second_soup):
     data = []
+
     registered = second_soup.find('td', {'headers': 'sa2'}).text
     data.append(clean_numbers(registered))
     envelopes = second_soup.find('td', {'headers': 'sa5'}).text
     data.append(clean_numbers(envelopes))
     valid = second_soup.find('td', {'headers': 'sa6'}).text
     data.append(clean_numbers(valid))
+
     data.extend(collect_votes(second_soup))
 
     return data
@@ -88,12 +90,15 @@ def create_header(second_soup):
 
 def collect_votes(second_soup):
     data_votes = []
-    votes = second_soup.find_all('td', {'headers': 't1sa2 t1sb3'})
-    votes2 = second_soup.find_all('td', {'headers': 't2sa2 t2sb3'})
-    for each in votes:
-        data_votes.append(clean_numbers(each.text))
-    for each in votes2:
-        data_votes.append(clean_numbers(each.text))
+    number = 1
+    table_count = len(second_soup.find_all('table'))
+
+    while number < table_count:
+        votes = second_soup.find_all('td', {'headers': f't{number}sa2 t{number}sb3'})
+        for each in votes:
+            data_votes.append(clean_numbers(each.text))
+        number += 1
+
     return data_votes
 
 
