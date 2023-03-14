@@ -15,12 +15,11 @@ def main():
     check_arguments(base_url)
     url = sys.argv[1]
     file_name = sys.argv[2]
-    print(url, file_name)
-    # first_soup = get_response(url)
-    # results = get_municipality_links(first_soup, base_url)
-    # print(f"Saving data to file: {file_name}")
-    # save_to_csv(results, file_name)
-    # print("All done, closing...")
+    first_soup = get_response(url)
+    results, header = get_municipality_links(first_soup, base_url)
+    print(f"Saving data to file: {file_name}")
+    save_to_csv(results, header, file_name)
+    print("All done, closing...")
 
 
 def check_arguments(base_url):
@@ -45,19 +44,24 @@ def get_response(url):
 
 def get_municipality_links(first_soup, base_url):
     results = []
-    i = 0
+    header = []
+    each_region = 0
+
     names = first_soup.find_all('td', {'class': 'overflow_name'})
     for each_td in first_soup.find_all('td', {'class': 'cislo'}):
         line = [each_td.text]
-        for each_name in names[i]:
+        for each_name in names[each_region]:
             line.append(each_name.text)
         link = each_td.a['href']
-        line.extend(collect_numbers(get_response(base_url + link)))
+        if each_region == 0:
+            header = create_header(get_response(base_url + link))
+            line.extend(collect_numbers(get_response(base_url + link)))
+        else:
+            line.extend(collect_numbers(get_response(base_url + link)))
         results.append(line)
-        i += 1
+        each_region += 1
 
-    # print(*results, sep="\n") Just for check
-    return results
+    return results, header
 
 
 def collect_numbers(second_soup):
@@ -71,6 +75,15 @@ def collect_numbers(second_soup):
     data.extend(collect_votes(second_soup))
 
     return data
+
+
+def create_header(second_soup):
+    header = ["Code", "Location", "Registered", "Envelopes",
+              "Valid"]
+    for party_name in second_soup.find_all('td', {'class': 'overflow_name'}):
+        header.append(party_name.text)
+
+    return header
 
 
 def collect_votes(second_soup):
@@ -91,21 +104,7 @@ def clean_numbers(number):
         return number
 
 
-def save_to_csv(results: list, file: str):
-    """Uloz tabulku men s datem do CSV souboru"""
-    header = ["Code", "Location", "Registered", "Envelopes",
-              "Valid", "Občanská demokratická strana",
-              "Řád národa - Vlastenecká unie", "CESTA ODPOVĚDNÉ SPOLEČNOSTI",
-              "Česká str.sociálně demokrat.", "Radostné Česko",
-              "STAROSTOVÉ A NEZÁVISLÍ", "Komunistická str.Čech a Moravy",
-              "Strana zelených", "ROZUMNÍ-stop migraci,diktát.EU",
-              "Strana svobodných občanů", "Blok proti islam.-Obran.domova",
-              "Občanská demokratická aliance", "Česká pirátská strana",
-              "Referendum o Evropské unii", "TOP 09",
-              "ANO 2011", "SPR-Republ.str.Čsl. M.Sládka",
-              "Křesť.demokr.unie-Čs.str.lid.", "Česká strana národně sociální",
-              "REALISTÉ", "SPORTOVCI", "Dělnic.str.sociální spravedl.",
-              "Svob.a př.dem.-T.Okamura (SPD)", "Strana Práv Občanů"]
+def save_to_csv(results: list, header: list, file: str):
     with open(file, "w", encoding="utf-8", newline="") as csv_s:
         write = csv.writer(csv_s, dialect="excel")
         write.writerow(header)
